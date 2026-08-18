@@ -1,0 +1,256 @@
+// =============================================================================
+// VERCEL-READY Prisma Schema
+// =============================================================================
+// After downloading the project, replace prisma/schema.prisma with this file:
+//   cp prisma/schema.vercel.prisma prisma/schema.prisma
+//
+// Changes vs. the original:
+//   1. Removed hardcoded "output" path (Prisma uses its default location)
+//   2. Changed binaryTargets to ["native", "rhel-openssl-3.0.x"] for Vercel
+// =============================================================================
+
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  REQUESTER
+  FULFILLER
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum StoreSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum RequestType {
+  NEW_STORE
+  REPLACEMENT
+  SUPPORT
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          UserRole  @default(REQUESTER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  requests      Request[]
+  sessions      Session[]
+  accounts      Account[]
+  addendums     Addendum[]
+
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Store {
+  id            String    @id @default(cuid())
+  siteNumber    String    @unique
+  name          String
+  address       String
+  city          String
+  state         String
+  zip           String
+  size          StoreSize
+  phone         String?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  requests      Request[]
+  dropShipRequests Request[] @relation("dropShipStore")
+
+  @@index([siteNumber])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  sku         String   @unique
+  description String?
+  category    String
+  unitPrice   Float    @default(0)
+  inStock     Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  bundleItems BundleItem[]
+  requestItems RequestItem[]
+
+  @@index([sku])
+  @@index([category])
+}
+
+model Bundle {
+  id        String       @id @default(cuid())
+  name      String
+  storeSize StoreSize    @unique
+  description String?
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  items     BundleItem[]
+}
+
+model BundleItem {
+  id        String  @id @default(cuid())
+  bundleId  String
+  productId String
+  quantity  Int     @default(1)
+  bundle    Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleId, productId])
+}
+
+model Request {
+  id               String        @id @default(cuid())
+  caseNumber       String        @unique
+  type             RequestType
+  status           RequestStatus @default(PENDING)
+  userId           String
+  storeId          String?
+  storeSize        StoreSize?
+  installRequested Boolean       @default(false)
+  notes            String?
+  priority         Priority      @default(MEDIUM)
+  category         String?
+  description      String?
+  ipAddress        String?
+  dropShipStoreId  String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  user             User          @relation(fields: [userId], references: [id])
+  store            Store?        @relation(fields: [storeId], references: [id])
+  dropShipStore    Store?        @relation("dropShipStore", fields: [dropShipStoreId], references: [id])
+  items            RequestItem[]
+  shipments        Shipment[]
+  addendums        Addendum[]
+
+  @@index([caseNumber])
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+}
+
+model RequestItem {
+  id              String  @id @default(cuid())
+  requestId       String
+  productId       String
+  quantity        Int     @default(1)
+  installRequested Boolean @default(false)
+  request         Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  product         Product @relation(fields: [productId], references: [id])
+  shipmentItems   ShipmentItem[]
+
+  @@unique([requestId, productId])
+}
+
+model Shipment {
+  id              String   @id @default(cuid())
+  requestId       String
+  shipmentNumber  String   @unique
+  carrier         String?
+  trackingNumber  String?
+  trackingUrl     String?
+  notes           String?
+  shippedAt       DateTime @default(now())
+  deliveredAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  request         Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  items           ShipmentItem[]
+
+  @@index([requestId])
+  @@index([shipmentNumber])
+}
+
+model ShipmentItem {
+  id            String   @id @default(cuid())
+  shipmentId    String
+  requestItemId String
+  quantity      Int      @default(1)
+  shipment      Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  requestItem   RequestItem @relation(fields: [requestItemId], references: [id], onDelete: Cascade)
+
+  @@unique([shipmentId, requestItemId])
+}
+
+model Addendum {
+  id          String   @id @default(cuid())
+  requestId   String
+  type        String   // STORE_CHANGE, NOTE, ITEM_CHANGE, IP_CHANGE, etc.
+  description String
+  oldValue    String?
+  newValue    String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  request     Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [createdBy], references: [id])
+
+  @@index([requestId])
+}
+
+model KnowledgeArticle {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String
+  category  String
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+}
