@@ -2,7 +2,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Package, MapPin, Clock, CheckCircle, Truck, XCircle, Wrench, User, Plus, ExternalLink, PackageCheck, Edit2, Trash2, X, FileText, Globe, MessageSquarePlus, Search, History } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, Clock, CheckCircle, Truck, XCircle, Wrench, User, Plus, ExternalLink, PackageCheck, Edit2, Trash2, X, FileText, Globe, MessageSquarePlus, Search, History, Paperclip, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function RequestDetailClient({ id }: { id: string }) {
@@ -17,6 +17,7 @@ export function RequestDetailClient({ id }: { id: string }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const role = (session?.user as any)?.role ?? 'REQUESTER';
   const canManage = role === 'FULFILLER' || role === 'ADMIN';
   const isAdmin = role === 'ADMIN';
@@ -71,6 +72,58 @@ export function RequestDetailClient({ id }: { id: string }) {
     } catch {
       toast.error('Error deleting request');
       setDeleting(false);
+    }
+  };
+
+  const ATT_MAX = 2;
+  const ATT_MAX_SIZE = 5 * 1024 * 1024;
+  const ATT_ALLOWED = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+  const attachmentCount = request?.attachments?.length ?? 0;
+  const canAddAttachment = (canManage || isOwner) && attachmentCount < ATT_MAX;
+  const canDeleteAttachment = canManage || isOwner;
+
+  const handleAttachmentUpload = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+    const remaining = ATT_MAX - attachmentCount;
+    if (files.length > remaining) {
+      toast.error(`Only ${remaining} more attachment(s) allowed (max ${ATT_MAX} total).`);
+      return;
+    }
+    for (const f of files) {
+      if (!ATT_ALLOWED.includes(f.type)) { toast.error(`"${f.name}" is not allowed. Only PDF, JPG, PNG.`); return; }
+      if (f.size > ATT_MAX_SIZE) { toast.error(`"${f.name}" exceeds the 5MB limit.`); return; }
+    }
+    setUploadingAttachment(true);
+    try {
+      const fd = new FormData();
+      files.forEach(f => fd.append('files', f));
+      const res = await fetch(`/api/requests/${id}/attachments`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Attachment uploaded');
+        fetchRequest();
+      } else {
+        toast.error(data?.error ?? 'Failed to upload');
+      }
+    } catch {
+      toast.error('Error uploading attachment');
+    }
+    setUploadingAttachment(false);
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    try {
+      const res = await fetch(`/api/requests/${id}/attachments/${attachmentId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Attachment deleted');
+        fetchRequest();
+      } else {
+        const d = await res.json();
+        toast.error(d?.error ?? 'Failed to delete');
+      }
+    } catch {
+      toast.error('Error deleting attachment');
     }
   };
 
@@ -351,6 +404,75 @@ export function RequestDetailClient({ id }: { id: string }) {
           </div>
         </div>
       )}
+
+      {/* Attachments Section */}
+      <div className="carters-card">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold" style={{ color: '#171B25' }}>
+            <Paperclip className="inline w-4 h-4 mr-1" /> Attachments ({attachmentCount})
+          </h3>
+          {canAddAttachment && (
+            <label className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer border ${uploadingAttachment ? 'opacity-50 pointer-events-none' : ''}`} style={{ borderColor: '#0067B9', color: '#0067B9' }}>
+              <Plus className="w-4 h-4" /> {uploadingAttachment ? 'Uploading...' : 'Add File'}
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                multiple
+                className="hidden"
+                disabled={uploadingAttachment}
+                onChange={(e) => { handleAttachmentUpload(e.target.files); e.target.value = ''; }}
+              />
+            </label>
+          )}
+        </div>
+        {attachmentCount === 0 ? (
+          <p className="text-sm" style={{ color: '#9CA3AF' }}>
+            No attachments. {canAddAttachment ? `Add up to ${ATT_MAX} files (PDF, JPG, PNG — max 5MB each).` : ''}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {request.attachments.map((a: any) => (
+              <div key={a.id} className="flex items-center justify-between p-2 rounded-md border" style={{ borderColor: '#E2E5EB' }}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#0067B9' }} />
+                  <div className="min-w-0">
+                    <a
+                      href={`/api/requests/${id}/attachments/${a.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium truncate hover:underline block"
+                      style={{ color: '#0067B9' }}
+                    >
+                      {a.fileName}
+                    </a>
+                    <span className="text-xs" style={{ color: '#6B7280' }}>
+                      {a.size < 1024 * 1024 ? `${Math.round(a.size / 1024)} KB` : `${(a.size / (1024 * 1024)).toFixed(1)} MB`}
+                      {a.user?.name || a.user?.email ? ` · ${a.user?.name ?? a.user?.email}` : ''}
+                      {a.createdAt ? ` · ${new Date(a.createdAt).toLocaleDateString()}` : ''}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <a
+                    href={`/api/requests/${id}/attachments/${a.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded hover:bg-gray-100"
+                    title="Download / view"
+                  >
+                    <Download className="w-4 h-4" style={{ color: '#6B7280' }} />
+                  </a>
+                  {canDeleteAttachment && (
+                    <button onClick={() => handleDeleteAttachment(a.id)} className="p-1.5 rounded hover:bg-red-50 text-red-500" title="Delete attachment">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Shipment Modal */}
       {showShipmentModal && (

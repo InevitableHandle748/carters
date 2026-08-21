@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Store as StoreIcon, Search, Plus, Minus, Trash2, ArrowLeft, Package, Wrench, MapPin, Globe, Building2, X } from 'lucide-react';
+import { Store as StoreIcon, Search, Plus, Minus, Trash2, ArrowLeft, Package, Wrench, MapPin, Globe, Building2, X, Paperclip, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -28,6 +28,11 @@ interface BundleItem {
 
 const NOTES_TEMPLATE = `Site Survey: \nIT Install Week: `;
 
+const MAX_ATTACHMENTS = 2;
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_ATTACHMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+const formatBytes = (b: number) => b < 1024 * 1024 ? `${Math.round(b / 1024)} KB` : `${(b / (1024 * 1024)).toFixed(1)} MB`;
+
 export function NewStoreForm() {
   const router = useRouter();
   const [stores, setStores] = useState<StoreOption[]>([]);
@@ -37,6 +42,7 @@ export function NewStoreForm() {
   const [installAll, setInstallAll] = useState(false);
   const [notes, setNotes] = useState(NOTES_TEMPLATE);
   const [ipAddress, setIpAddress] = useState('');
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [storeSearch, setStoreSearch] = useState('');
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -169,6 +175,35 @@ export function NewStoreForm() {
     setCreatingStore(false);
   };
 
+  const handleFilesSelected = (fileList: FileList | null) => {
+    if (!fileList) return;
+    const incoming = Array.from(fileList);
+    const accepted: File[] = [];
+    for (const f of incoming) {
+      if (!ALLOWED_ATTACHMENT_TYPES.includes(f.type)) {
+        toast.error(`"${f.name}" is not allowed. Only PDF, JPG, and PNG.`);
+        continue;
+      }
+      if (f.size > MAX_ATTACHMENT_SIZE) {
+        toast.error(`"${f.name}" exceeds the 5MB limit.`);
+        continue;
+      }
+      accepted.push(f);
+    }
+    setAttachments(prev => {
+      const combined = [...prev, ...accepted];
+      if (combined.length > MAX_ATTACHMENTS) {
+        toast.error(`Maximum ${MAX_ATTACHMENTS} attachments allowed.`);
+        return combined.slice(0, MAX_ATTACHMENTS);
+      }
+      return combined;
+    });
+  };
+
+  const removeAttachment = (idx: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== idx));
+  };
+
   const handleSubmit = async () => {
     if (!selectedStore) { toast.error('Please select a store'); return; }
     if (!storeSize) { toast.error('Please select a store size'); return; }
@@ -197,6 +232,20 @@ export function NewStoreForm() {
       });
       const data = await res.json();
       if (res.ok) {
+        // Upload attachments (if any) to the newly created request
+        if (attachments.length > 0 && data?.id) {
+          try {
+            const fd = new FormData();
+            attachments.forEach(f => fd.append('files', f));
+            const upRes = await fetch(`/api/requests/${data.id}/attachments`, { method: 'POST', body: fd });
+            if (!upRes.ok) {
+              const upErr = await upRes.json().catch(() => ({}));
+              toast.error(`Request created, but attachments failed: ${upErr?.error ?? 'upload error'}`);
+            }
+          } catch {
+            toast.error('Request created, but attachments failed to upload.');
+          }
+        }
         toast.success(`Request ${data?.caseNumber} created successfully!`);
         router.push('/requests');
       } else {
@@ -534,6 +583,47 @@ export function NewStoreForm() {
           </div>
         </div>
       )}
+
+      {/* Attachments */}
+      <div className="carters-card">
+        <h2 className="text-lg font-bold mb-1" style={{ color: '#171B25' }}>
+          <Paperclip className="inline w-5 h-5 mr-2" style={{ color: '#0067B9' }} />
+          Attachments
+        </h2>
+        <p className="text-xs mb-3" style={{ color: '#6B7280' }}>
+          Attach up to {MAX_ATTACHMENTS} files (PDF, JPG, or PNG — max 5MB each).
+        </p>
+
+        {attachments.length > 0 && (
+          <div className="space-y-2 mb-3">
+            {attachments.map((f, idx) => (
+              <div key={idx} className="flex items-center justify-between p-2 rounded-md border" style={{ borderColor: '#E2E5EB', backgroundColor: '#F5F3F0' }}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#0067B9' }} />
+                  <span className="text-sm truncate">{f.name}</span>
+                  <span className="text-xs flex-shrink-0" style={{ color: '#6B7280' }}>({formatBytes(f.size)})</span>
+                </div>
+                <button onClick={() => removeAttachment(idx)} className="p-1 rounded hover:bg-red-50 text-red-500 flex-shrink-0">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {attachments.length < MAX_ATTACHMENTS && (
+          <label className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium cursor-pointer border" style={{ borderColor: '#0067B9', color: '#0067B9' }}>
+            <Plus className="w-4 h-4" /> Add File
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+              multiple
+              className="hidden"
+              onChange={(e) => { handleFilesSelected(e.target.files); e.target.value = ''; }}
+            />
+          </label>
+        )}
+      </div>
 
       {/* Notes & Submit */}
       <div className="carters-card">

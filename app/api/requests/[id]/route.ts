@@ -30,6 +30,17 @@ export async function GET(request: Request, { params }: { params: { id: string }
           include: { user: { select: { name: true, email: true } } },
           orderBy: { createdAt: 'desc' as const },
         },
+        attachments: {
+          select: {
+            id: true,
+            fileName: true,
+            mimeType: true,
+            size: true,
+            createdAt: true,
+            user: { select: { name: true, email: true } },
+          },
+          orderBy: { createdAt: 'desc' as const },
+        },
       },
     });
     if (!req) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -52,6 +63,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
         updatedAt: s?.updatedAt?.toISOString?.() ?? null,
       })) ?? [],
       addendums: (req as any)?.addendums?.map?.((a: any) => ({
+        ...a,
+        createdAt: a?.createdAt?.toISOString?.() ?? null,
+      })) ?? [],
+      attachments: (req as any)?.attachments?.map?.((a: any) => ({
         ...a,
         createdAt: a?.createdAt?.toISOString?.() ?? null,
       })) ?? [],
