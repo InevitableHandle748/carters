@@ -2,19 +2,20 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatStoreSize } from '@/lib/utils';
 
 export function AdminStoresClient() {
   const [stores, setStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'MEDIUM', phone: '' });
+  const [form, setForm] = useState({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'THREE_REGISTER', phone: '' });
 
   const fetchStores = () => { fetch('/api/stores').then(r => r.json()).then(d => setStores(d ?? [])).catch(() => toast.error('Failed')).finally(() => setLoading(false)); };
   useEffect(() => { fetchStores(); }, []);
 
-  const openCreate = () => { setEditing(null); setForm({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'MEDIUM', phone: '' }); setShowModal(true); };
-  const openEdit = (s: any) => { setEditing(s); setForm({ siteNumber: s?.siteNumber ?? '', name: s?.name ?? '', address: s?.address ?? '', city: s?.city ?? '', state: s?.state ?? '', zip: s?.zip ?? '', size: s?.size ?? 'MEDIUM', phone: s?.phone ?? '' }); setShowModal(true); };
+  const openCreate = () => { setEditing(null); setForm({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'THREE_REGISTER', phone: '' }); setShowModal(true); };
+  const openEdit = (s: any) => { setEditing(s); setForm({ siteNumber: s?.siteNumber ?? '', name: s?.name ?? '', address: s?.address ?? '', city: s?.city ?? '', state: s?.state ?? '', zip: s?.zip ?? '', size: s?.size ?? 'THREE_REGISTER', phone: s?.phone ?? '' }); setShowModal(true); };
 
   const handleSave = async () => {
     try {
@@ -53,7 +54,7 @@ export function AdminStoresClient() {
                 <td className="px-3 py-2 font-medium">{s?.siteNumber}</td>
                 <td className="px-3 py-2">{s?.name}</td>
                 <td className="px-3 py-2 text-gray-500">{s?.address}, {s?.city}, {s?.state} {s?.zip}</td>
-                <td className="px-3 py-2">{s?.size}</td>
+                <td className="px-3 py-2">{formatStoreSize(s?.size)}</td>
                 <td className="px-3 py-2 text-center">
                   <button onClick={() => openEdit(s)} className="p-1 rounded hover:bg-gray-200 mr-1"><Edit2 className="w-4 h-4" style={{ color: '#0067B9' }} /></button>
                   <button onClick={() => handleDelete(s?.id)} className="p-1 rounded hover:bg-red-50"><Trash2 className="w-4 h-4 text-red-500" /></button>
@@ -79,7 +80,7 @@ export function AdminStoresClient() {
               </div>
               <div><label className="carters-label block mb-1">Size</label>
                 <select value={form.size} onChange={e => setForm({...form, size: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm" style={{ borderColor: '#E2E5EB' }}>
-                  <option value="SMALL">Small</option><option value="MEDIUM">Medium</option><option value="LARGE">Large</option>
+                  <option value="TWO_REGISTER">2 Register</option><option value="THREE_REGISTER">3 Register</option><option value="FOUR_REGISTER">4 Register</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-2">

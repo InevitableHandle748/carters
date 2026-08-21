@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Layers, Package } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatStoreSize } from '@/lib/utils';
 
 export function BundlesClient() {
   const [bundles, setBundles] = useState<any[]>([]);
@@ -15,7 +16,7 @@ export function BundlesClient() {
       .finally(() => setLoading(false));
   }, []);
 
-  const sizeColors: Record<string, string> = { SMALL: '#F59E0B', MEDIUM: '#0067B9', LARGE: '#00B2A9' };
+  const sizeColors: Record<string, string> = { TWO_REGISTER: '#F59E0B', THREE_REGISTER: '#0067B9', FOUR_REGISTER: '#00B2A9' };
 
   return (
     <div className="space-y-6">
@@ -40,7 +41,7 @@ export function BundlesClient() {
                     <p className="text-xs" style={{ color: '#6B7280' }}>{bundle?.description} • {bundle?.items?.length ?? 0} items</p>
                   </div>
                 </div>
-                <span className="px-3 py-1 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: sizeColors?.[bundle?.storeSize] ?? '#999' }}>{bundle?.storeSize}</span>
+                <span className="px-3 py-1 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: sizeColors?.[bundle?.storeSize] ?? '#999' }}>{formatStoreSize(bundle?.storeSize)}</span>
               </div>
 
               <table className="w-full text-sm">

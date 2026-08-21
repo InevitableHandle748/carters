@@ -5,7 +5,7 @@ import { Users, Package, Layers, MapPin, BookOpen, ArrowRight } from 'lucide-rea
 const adminSections = [
   { title: 'User Management', description: 'Create, edit, and manage user accounts and role assignments', href: '/admin/users', icon: Users, color: '#0067B9' },
   { title: 'Product Management', description: 'Add, edit, and manage equipment models in the catalog', href: '/admin/products', icon: Package, color: '#00B2A9' },
-  { title: 'Bundle Management', description: 'Configure equipment bundles for Small, Medium, and Large stores', href: '/admin/bundles', icon: Layers, color: '#F59E0B' },
+  { title: 'Bundle Management', description: 'Configure equipment bundles for 2, 3, and 4 Register stores', href: '/admin/bundles', icon: Layers, color: '#F59E0B' },
   { title: 'Store Management', description: 'Add and manage Carter\'s store locations', href: '/admin/stores', icon: MapPin, color: '#3B7DD8' },
   { title: 'Knowledge Articles', description: 'Create and manage knowledge base articles', href: '/admin/knowledge', icon: BookOpen, color: '#C0392B' },
 ];
