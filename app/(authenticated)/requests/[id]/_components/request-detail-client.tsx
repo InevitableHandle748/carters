@@ -14,8 +14,12 @@ export function RequestDetailClient({ id }: { id: string }) {
   const [showAddendumModal, setShowAddendumModal] = useState(false);
   const [addendumType, setAddendumType] = useState('');
   const [showNotesModal, setShowNotesModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const role = (session?.user as any)?.role ?? 'REQUESTER';
   const canManage = role === 'FULFILLER' || role === 'ADMIN';
+  const isAdmin = role === 'ADMIN';
   const isOwner = request?.userId === (session?.user as any)?.id;
   const isOpen = request?.status !== 'COMPLETED' && request?.status !== 'CANCELLED';
 
@@ -44,6 +48,29 @@ export function RequestDetailClient({ id }: { id: string }) {
       }
     } catch {
       toast.error('Error updating status');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      toast.error('Please type DELETE to confirm');
+      return;
+    }
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/requests/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || 'Request deleted successfully');
+        // Redirect to requests list after a short delay
+        setTimeout(() => { window.location.href = '/requests'; }, 1000);
+      } else {
+        toast.error(data.error || 'Failed to delete request');
+        setDeleting(false);
+      }
+    } catch {
+      toast.error('Error deleting request');
+      setDeleting(false);
     }
   };
 
@@ -84,6 +111,16 @@ export function RequestDetailClient({ id }: { id: string }) {
         <span className="px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1" style={{ backgroundColor: sc.bg, color: sc.text }}>
           {StatusIcon && <StatusIcon className="w-4 h-4" />} {request?.status}
         </span>
+        {isAdmin && (
+          <button 
+            onClick={() => { setShowDeleteModal(true); setDeleteConfirmText(''); }} 
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium text-white hover:opacity-90" 
+            style={{ backgroundColor: '#C0392B' }}
+            title="Delete request and all associated records"
+          >
+            <Trash2 className="w-4 h-4" /> Delete
+          </button>
+        )}
       </div>
 
       {/* Status Actions (for Fulfillers/Admins) */}
@@ -346,6 +383,68 @@ export function RequestDetailClient({ id }: { id: string }) {
           onClose={() => setShowNotesModal(false)}
           onSaved={() => { setShowNotesModal(false); fetchRequest(); }}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => !deleting && setShowDeleteModal(false)}>
+          <div className="bg-white rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-red-600">Delete Request</h3>
+              <button onClick={() => setShowDeleteModal(false)} disabled={deleting}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="p-3 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
+                <p className="text-sm font-medium" style={{ color: '#991B1B' }}>
+                  ⚠️ This action cannot be undone
+                </p>
+              </div>
+              <p className="text-sm" style={{ color: '#374151' }}>
+                You are about to permanently delete request <strong>{request?.caseNumber}</strong> and all associated records:
+              </p>
+              <ul className="text-sm space-y-1 ml-4" style={{ color: '#6B7280' }}>
+                <li>• {request?.items?.length || 0} request item(s)</li>
+                <li>• {request?.shipments?.length || 0} shipment(s)</li>
+                <li>• {request?.addendums?.length || 0} addendum(s)</li>
+              </ul>
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#171B25' }}>
+                  Type <span className="font-mono font-bold text-red-600">DELETE</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm font-mono"
+                  style={{ borderColor: '#E2E5EB' }}
+                  placeholder="DELETE"
+                  autoFocus
+                  disabled={deleting}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button 
+                  onClick={() => setShowDeleteModal(false)} 
+                  className="px-4 py-2 rounded-md text-sm"
+                  style={{ color: '#6B7280' }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting || deleteConfirmText !== 'DELETE'}
+                  className="px-4 py-2 rounded-md text-sm font-semibold text-white disabled:opacity-50"
+                  style={{ backgroundColor: '#C0392B' }}
+                >
+                  {deleting ? 'Deleting...' : 'Delete Request'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
