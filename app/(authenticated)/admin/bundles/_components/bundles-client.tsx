@@ -15,7 +15,7 @@ export function BundlesClient() {
       .finally(() => setLoading(false));
   }, []);
 
-  const sizeColors: Record<string, string> = { SMALL: '#F59E0B', MEDIUM: '#0067B9', LARGE: '#00B2A9' };
+  const sizeColors: Record<string, string> = { TWO_REGISTER: '#F59E0B', THREE_REGISTER: '#0067B9', FOUR_REGISTER: '#00B2A9' };
 
   return (
     <div className="space-y-6">

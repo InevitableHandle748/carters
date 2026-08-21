@@ -50,7 +50,7 @@ export function NewStoreForm() {
 
   // Create store modal
   const [showCreateStore, setShowCreateStore] = useState(false);
-  const [newStore, setNewStore] = useState({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'MEDIUM' as string, phone: '' });
+  const [newStore, setNewStore] = useState({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'THREE_REGISTER' as string, phone: '' });
   const [creatingStore, setCreatingStore] = useState(false);
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export function NewStoreForm() {
         setStores(prev => [...prev, created]);
         handleStoreSelect(created);
         setShowCreateStore(false);
-        setNewStore({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'MEDIUM', phone: '' });
+        setNewStore({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'THREE_REGISTER', phone: '' });
         toast.success('Store created successfully');
       } else {
         const data = await res.json();
@@ -278,9 +278,9 @@ export function NewStoreForm() {
               style={{ borderColor: '#E2E5EB' }}
             >
               <option value="">Select store size...</option>
-              <option value="SMALL">Small (Under 3,000 sq ft)</option>
-              <option value="MEDIUM">Medium (3,000-6,000 sq ft)</option>
-              <option value="LARGE">Large (Over 6,000 sq ft)</option>
+              <option value="TWO_REGISTER">Small (Under 3,000 sq ft)</option>
+              <option value="THREE_REGISTER">Medium (3,000-6,000 sq ft)</option>
+              <option value="FOUR_REGISTER">Large (Over 6,000 sq ft)</option>
             </select>
           </div>
         </div>
@@ -514,9 +514,9 @@ export function NewStoreForm() {
                 <div>
                   <label className="block text-sm font-semibold mb-1" style={{ color: '#171B25' }}>Store Size *</label>
                   <select value={newStore.size} onChange={e => setNewStore(p => ({ ...p, size: e.target.value }))} className="w-full px-3 py-2 border rounded-md text-sm" style={{ borderColor: '#E2E5EB' }}>
-                    <option value="SMALL">Small</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="LARGE">Large</option>
+                    <option value="TWO_REGISTER">Small</option>
+                    <option value="THREE_REGISTER">Medium</option>
+                    <option value="FOUR_REGISTER">Large</option>
                   </select>
                 </div>
                 <div>

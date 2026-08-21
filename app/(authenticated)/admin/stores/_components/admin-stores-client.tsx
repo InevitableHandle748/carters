@@ -8,13 +8,13 @@ export function AdminStoresClient() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'MEDIUM', phone: '' });
+  const [form, setForm] = useState({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'THREE_REGISTER', phone: '' });
 
   const fetchStores = () => { fetch('/api/stores').then(r => r.json()).then(d => setStores(d ?? [])).catch(() => toast.error('Failed')).finally(() => setLoading(false)); };
   useEffect(() => { fetchStores(); }, []);
 
-  const openCreate = () => { setEditing(null); setForm({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'MEDIUM', phone: '' }); setShowModal(true); };
-  const openEdit = (s: any) => { setEditing(s); setForm({ siteNumber: s?.siteNumber ?? '', name: s?.name ?? '', address: s?.address ?? '', city: s?.city ?? '', state: s?.state ?? '', zip: s?.zip ?? '', size: s?.size ?? 'MEDIUM', phone: s?.phone ?? '' }); setShowModal(true); };
+  const openCreate = () => { setEditing(null); setForm({ siteNumber: '', name: '', address: '', city: '', state: '', zip: '', size: 'THREE_REGISTER', phone: '' }); setShowModal(true); };
+  const openEdit = (s: any) => { setEditing(s); setForm({ siteNumber: s?.siteNumber ?? '', name: s?.name ?? '', address: s?.address ?? '', city: s?.city ?? '', state: s?.state ?? '', zip: s?.zip ?? '', size: s?.size ?? 'THREE_REGISTER', phone: s?.phone ?? '' }); setShowModal(true); };
 
   const handleSave = async () => {
     try {
@@ -79,7 +79,7 @@ export function AdminStoresClient() {
               </div>
               <div><label className="carters-label block mb-1">Size</label>
                 <select value={form.size} onChange={e => setForm({...form, size: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm" style={{ borderColor: '#E2E5EB' }}>
-                  <option value="SMALL">Small</option><option value="MEDIUM">Medium</option><option value="LARGE">Large</option>
+                  <option value="TWO_REGISTER">Small</option><option value="THREE_REGISTER">Medium</option><option value="FOUR_REGISTER">Large</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-2">

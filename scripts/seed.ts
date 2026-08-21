@@ -89,21 +89,21 @@ async function main() {
 
   // --- STORES ---
   const stores = [
-    { siteNumber: 'CTR-001', name: "Carter's Atlanta Flagship", address: '1200 Peachtree St NE', city: 'Atlanta', state: 'GA', zip: '30309', size: 'LARGE' as StoreSize },
-    { siteNumber: 'CTR-002', name: "Carter's Buckhead", address: '3500 Peachtree Rd NE', city: 'Atlanta', state: 'GA', zip: '30326', size: 'MEDIUM' as StoreSize },
-    { siteNumber: 'CTR-003', name: "Carter's Mall of Georgia", address: '3333 Buford Dr', city: 'Buford', state: 'GA', zip: '30519', size: 'LARGE' as StoreSize },
-    { siteNumber: 'CTR-004', name: "Carter's Perimeter Mall", address: '4400 Ashford Dunwoody Rd', city: 'Dunwoody', state: 'GA', zip: '30346', size: 'MEDIUM' as StoreSize },
-    { siteNumber: 'CTR-005', name: "Carter's Lenox Square", address: '3393 Peachtree Rd NE', city: 'Atlanta', state: 'GA', zip: '30326', size: 'SMALL' as StoreSize },
-    { siteNumber: 'CTR-006', name: "Carter's North Point Mall", address: '1000 North Point Cir', city: 'Alpharetta', state: 'GA', zip: '30022', size: 'MEDIUM' as StoreSize },
-    { siteNumber: 'CTR-007', name: "Carter's Town Center", address: '400 Ernest Barrett Pkwy', city: 'Kennesaw', state: 'GA', zip: '30144', size: 'SMALL' as StoreSize },
-    { siteNumber: 'CTR-008', name: "Carter's Southlake Mall", address: '1000 Southlake Mall', city: 'Morrow', state: 'GA', zip: '30260', size: 'SMALL' as StoreSize },
-    { siteNumber: 'CTR-009', name: "Carter's Cumberland Mall", address: '1189 Cumberland Mall', city: 'Atlanta', state: 'GA', zip: '30339', size: 'LARGE' as StoreSize },
-    { siteNumber: 'CTR-010', name: "Carter's Discover Mills", address: '5900 Sugarloaf Pkwy', city: 'Lawrenceville', state: 'GA', zip: '30043', size: 'MEDIUM' as StoreSize },
-    { siteNumber: 'CTR-011', name: "Carter's Stonecrest", address: '2929 Turner Hill Rd', city: 'Lithonia', state: 'GA', zip: '30038', size: 'SMALL' as StoreSize },
-    { siteNumber: 'CTR-012', name: "Carter's Sugarloaf Mills", address: '5900 Sugarloaf Pkwy Ste 100', city: 'Lawrenceville', state: 'GA', zip: '30043', size: 'LARGE' as StoreSize },
-    { siteNumber: 'CTR-013', name: "Carter's Avalon", address: '400 Avalon Blvd', city: 'Alpharetta', state: 'GA', zip: '30009', size: 'MEDIUM' as StoreSize },
-    { siteNumber: 'CTR-014', name: "Carter's The Forum", address: '5155 Peachtree Pkwy', city: 'Peachtree Corners', state: 'GA', zip: '30092', size: 'SMALL' as StoreSize },
-    { siteNumber: 'CTR-015', name: "Carter's Outlet Shoppes", address: '915 Ridgewalk Pkwy', city: 'Woodstock', state: 'GA', zip: '30188', size: 'MEDIUM' as StoreSize },
+    { siteNumber: 'CTR-001', name: "Carter's Atlanta Flagship", address: '1200 Peachtree St NE', city: 'Atlanta', state: 'GA', zip: '30309', size: 'FOUR_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-002', name: "Carter's Buckhead", address: '3500 Peachtree Rd NE', city: 'Atlanta', state: 'GA', zip: '30326', size: 'THREE_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-003', name: "Carter's Mall of Georgia", address: '3333 Buford Dr', city: 'Buford', state: 'GA', zip: '30519', size: 'FOUR_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-004', name: "Carter's Perimeter Mall", address: '4400 Ashford Dunwoody Rd', city: 'Dunwoody', state: 'GA', zip: '30346', size: 'THREE_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-005', name: "Carter's Lenox Square", address: '3393 Peachtree Rd NE', city: 'Atlanta', state: 'GA', zip: '30326', size: 'TWO_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-006', name: "Carter's North Point Mall", address: '1000 North Point Cir', city: 'Alpharetta', state: 'GA', zip: '30022', size: 'THREE_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-007', name: "Carter's Town Center", address: '400 Ernest Barrett Pkwy', city: 'Kennesaw', state: 'GA', zip: '30144', size: 'TWO_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-008', name: "Carter's Southlake Mall", address: '1000 Southlake Mall', city: 'Morrow', state: 'GA', zip: '30260', size: 'TWO_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-009', name: "Carter's Cumberland Mall", address: '1189 Cumberland Mall', city: 'Atlanta', state: 'GA', zip: '30339', size: 'FOUR_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-010', name: "Carter's Discover Mills", address: '5900 Sugarloaf Pkwy', city: 'Lawrenceville', state: 'GA', zip: '30043', size: 'THREE_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-011', name: "Carter's Stonecrest", address: '2929 Turner Hill Rd', city: 'Lithonia', state: 'GA', zip: '30038', size: 'TWO_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-012', name: "Carter's Sugarloaf Mills", address: '5900 Sugarloaf Pkwy Ste 100', city: 'Lawrenceville', state: 'GA', zip: '30043', size: 'FOUR_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-013', name: "Carter's Avalon", address: '400 Avalon Blvd', city: 'Alpharetta', state: 'GA', zip: '30009', size: 'THREE_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-014', name: "Carter's The Forum", address: '5155 Peachtree Pkwy', city: 'Peachtree Corners', state: 'GA', zip: '30092', size: 'TWO_REGISTER' as StoreSize },
+    { siteNumber: 'CTR-015', name: "Carter's Outlet Shoppes", address: '915 Ridgewalk Pkwy', city: 'Woodstock', state: 'GA', zip: '30188', size: 'THREE_REGISTER' as StoreSize },
   ];
 
   const createdStores: any[] = [];
@@ -187,9 +187,9 @@ async function main() {
   // --- BUNDLES ---
   // Small Store Bundle (10 items)
   const smallBundle = await prisma.bundle.upsert({
-    where: { storeSize: 'SMALL' },
+    where: { storeSize: 'TWO_REGISTER' },
     update: {},
-    create: { name: 'Small Store Equipment Kit', storeSize: 'SMALL', description: 'Standard equipment package for small format stores (under 3,000 sq ft)' },
+    create: { name: 'Small Store Equipment Kit', storeSize: 'TWO_REGISTER', description: 'Standard equipment package for small format stores (under 3,000 sq ft)' },
   });
 
   const smallItems = [
@@ -211,9 +211,9 @@ async function main() {
 
   // Medium Store Bundle (18 items)
   const medBundle = await prisma.bundle.upsert({
-    where: { storeSize: 'MEDIUM' },
+    where: { storeSize: 'THREE_REGISTER' },
     update: {},
-    create: { name: 'Medium Store Equipment Kit', storeSize: 'MEDIUM', description: 'Standard equipment package for medium format stores (3,000-6,000 sq ft)' },
+    create: { name: 'Medium Store Equipment Kit', storeSize: 'THREE_REGISTER', description: 'Standard equipment package for medium format stores (3,000-6,000 sq ft)' },
   });
 
   const medItems = [
@@ -237,9 +237,9 @@ async function main() {
 
   // Large Store Bundle (28 items)
   const largeBundle = await prisma.bundle.upsert({
-    where: { storeSize: 'LARGE' },
+    where: { storeSize: 'FOUR_REGISTER' },
     update: {},
-    create: { name: 'Large Store Equipment Kit', storeSize: 'LARGE', description: 'Full equipment package for large format stores (over 6,000 sq ft)' },
+    create: { name: 'Large Store Equipment Kit', storeSize: 'FOUR_REGISTER', description: 'Full equipment package for large format stores (over 6,000 sq ft)' },
   });
 
   const largeItems = [
@@ -274,7 +274,7 @@ async function main() {
       status: 'COMPLETED' as RequestStatus,
       userId: requester1.id,
       storeId: createdStores[0].id,
-      storeSize: 'LARGE' as StoreSize,
+      storeSize: 'FOUR_REGISTER' as StoreSize,
       installRequested: true,
       notes: 'Flagship store grand opening - all equipment needed by June 1',
       priority: 'HIGH' as Priority,
@@ -286,7 +286,7 @@ async function main() {
       status: 'APPROVED' as RequestStatus,
       userId: requester2.id,
       storeId: createdStores[1].id,
-      storeSize: 'MEDIUM' as StoreSize,
+      storeSize: 'THREE_REGISTER' as StoreSize,
       installRequested: true,
       notes: 'New Buckhead location opening Q3',
       priority: 'MEDIUM' as Priority,
@@ -331,7 +331,7 @@ async function main() {
       status: 'PENDING' as RequestStatus,
       userId: requester3.id,
       storeId: createdStores[10].id,
-      storeSize: 'SMALL' as StoreSize,
+      storeSize: 'TWO_REGISTER' as StoreSize,
       installRequested: true,
       notes: 'New small format store opening at Stonecrest',
       priority: 'MEDIUM' as Priority,

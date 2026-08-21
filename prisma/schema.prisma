@@ -34,9 +34,9 @@ enum RequestStatus {
 }
 
 enum StoreSize {
-  SMALL
-  MEDIUM
-  LARGE
+  TWO_REGISTER
+  THREE_REGISTER
+  FOUR_REGISTER
 }
 
 enum RequestType {
