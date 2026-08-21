@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatStoreSize } from '@/lib/utils';
 
 export function AdminStoresClient() {
   const [stores, setStores] = useState<any[]>([]);
@@ -53,7 +54,7 @@ export function AdminStoresClient() {
                 <td className="px-3 py-2 font-medium">{s?.siteNumber}</td>
                 <td className="px-3 py-2">{s?.name}</td>
                 <td className="px-3 py-2 text-gray-500">{s?.address}, {s?.city}, {s?.state} {s?.zip}</td>
-                <td className="px-3 py-2">{s?.size}</td>
+                <td className="px-3 py-2">{formatStoreSize(s?.size)}</td>
                 <td className="px-3 py-2 text-center">
                   <button onClick={() => openEdit(s)} className="p-1 rounded hover:bg-gray-200 mr-1"><Edit2 className="w-4 h-4" style={{ color: '#0067B9' }} /></button>
                   <button onClick={() => handleDelete(s?.id)} className="p-1 rounded hover:bg-red-50"><Trash2 className="w-4 h-4 text-red-500" /></button>
@@ -79,7 +80,7 @@ export function AdminStoresClient() {
               </div>
               <div><label className="carters-label block mb-1">Size</label>
                 <select value={form.size} onChange={e => setForm({...form, size: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm" style={{ borderColor: '#E2E5EB' }}>
-                  <option value="TWO_REGISTER">Small</option><option value="THREE_REGISTER">Medium</option><option value="FOUR_REGISTER">Large</option>
+                  <option value="TWO_REGISTER">2 Register</option><option value="THREE_REGISTER">3 Register</option><option value="FOUR_REGISTER">4 Register</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-2">

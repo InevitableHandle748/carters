@@ -278,9 +278,9 @@ export function NewStoreForm() {
               style={{ borderColor: '#E2E5EB' }}
             >
               <option value="">Select store size...</option>
-              <option value="TWO_REGISTER">Small (Under 3,000 sq ft)</option>
-              <option value="THREE_REGISTER">Medium (3,000-6,000 sq ft)</option>
-              <option value="FOUR_REGISTER">Large (Over 6,000 sq ft)</option>
+              <option value="TWO_REGISTER">2 Register (Under 3,000 sq ft)</option>
+              <option value="THREE_REGISTER">3 Register (3,000-6,000 sq ft)</option>
+              <option value="FOUR_REGISTER">4 Register (Over 6,000 sq ft)</option>
             </select>
           </div>
         </div>
@@ -514,9 +514,9 @@ export function NewStoreForm() {
                 <div>
                   <label className="block text-sm font-semibold mb-1" style={{ color: '#171B25' }}>Store Size *</label>
                   <select value={newStore.size} onChange={e => setNewStore(p => ({ ...p, size: e.target.value }))} className="w-full px-3 py-2 border rounded-md text-sm" style={{ borderColor: '#E2E5EB' }}>
-                    <option value="TWO_REGISTER">Small</option>
-                    <option value="THREE_REGISTER">Medium</option>
-                    <option value="FOUR_REGISTER">Large</option>
+                    <option value="TWO_REGISTER">2 Register</option>
+                    <option value="THREE_REGISTER">3 Register</option>
+                    <option value="FOUR_REGISTER">4 Register</option>
                   </select>
                 </div>
                 <div>

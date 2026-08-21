@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Search, MapPin, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatStoreSize } from '@/lib/utils';
 
 export function StoresClient() {
   const [stores, setStores] = useState<any[]>([]);
@@ -42,7 +43,7 @@ export function StoresClient() {
                     <Building2 className="w-4 h-4" style={{ color: '#0067B9' }} />
                     <span className="font-semibold text-sm">{s?.siteNumber}</span>
                   </div>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium text-white" style={{ backgroundColor: sizeColors?.[s?.size] ?? '#999' }}>{s?.size}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium text-white" style={{ backgroundColor: sizeColors?.[s?.size] ?? '#999' }}>{formatStoreSize(s?.size)}</span>
                 </div>
                 <h3 className="font-medium text-sm mb-1" style={{ color: '#171B25' }}>{s?.name}</h3>
                 <div className="flex items-start gap-1 text-xs" style={{ color: '#6B7280' }}>
