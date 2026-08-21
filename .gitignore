@@ -43,3 +43,5 @@ next-env.d.ts
 
 # prisma generated client (regenerated on install/build)
 /prisma/generated
+STORESIZE_AUDIT.*
+storesize_migration.sql
