@@ -64,6 +64,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   addendums     Addendum[]
+  attachments   Attachment[]
 
   @@index([email])
 }
@@ -176,6 +177,7 @@ model Request {
   items            RequestItem[]
   shipments        Shipment[]
   addendums        Addendum[]
+  attachments      Attachment[]
 
   @@index([caseNumber])
   @@index([userId])
@@ -237,6 +239,21 @@ model Addendum {
   createdAt   DateTime @default(now())
   request     Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [createdBy], references: [id])
+
+  @@index([requestId])
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  requestId  String
+  fileName   String
+  mimeType   String
+  size       Int
+  data       Bytes
+  uploadedBy String
+  createdAt  DateTime @default(now())
+  request    Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [uploadedBy], references: [id])
 
   @@index([requestId])
 }

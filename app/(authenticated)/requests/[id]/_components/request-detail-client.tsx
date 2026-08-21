@@ -2,7 +2,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Package, MapPin, Clock, CheckCircle, Truck, XCircle, Wrench, User, Plus, ExternalLink, PackageCheck, Edit2, Trash2, X, FileText, Globe, MessageSquarePlus, Search, History } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, Clock, CheckCircle, Truck, XCircle, Wrench, User, Plus, ExternalLink, PackageCheck, Edit2, Trash2, X, FileText, Globe, MessageSquarePlus, Search, History, Paperclip, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function RequestDetailClient({ id }: { id: string }) {
@@ -14,8 +14,13 @@ export function RequestDetailClient({ id }: { id: string }) {
   const [showAddendumModal, setShowAddendumModal] = useState(false);
   const [addendumType, setAddendumType] = useState('');
   const [showNotesModal, setShowNotesModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const role = (session?.user as any)?.role ?? 'REQUESTER';
   const canManage = role === 'FULFILLER' || role === 'ADMIN';
+  const isAdmin = role === 'ADMIN';
   const isOwner = request?.userId === (session?.user as any)?.id;
   const isOpen = request?.status !== 'COMPLETED' && request?.status !== 'CANCELLED';
 
@@ -44,6 +49,81 @@ export function RequestDetailClient({ id }: { id: string }) {
       }
     } catch {
       toast.error('Error updating status');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      toast.error('Please type DELETE to confirm');
+      return;
+    }
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/requests/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || 'Request deleted successfully');
+        // Redirect to requests list after a short delay
+        setTimeout(() => { window.location.href = '/requests'; }, 1000);
+      } else {
+        toast.error(data.error || 'Failed to delete request');
+        setDeleting(false);
+      }
+    } catch {
+      toast.error('Error deleting request');
+      setDeleting(false);
+    }
+  };
+
+  const ATT_MAX = 2;
+  const ATT_MAX_SIZE = 5 * 1024 * 1024;
+  const ATT_ALLOWED = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+  const attachmentCount = request?.attachments?.length ?? 0;
+  const canAddAttachment = (canManage || isOwner) && attachmentCount < ATT_MAX;
+  const canDeleteAttachment = canManage || isOwner;
+
+  const handleAttachmentUpload = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+    const remaining = ATT_MAX - attachmentCount;
+    if (files.length > remaining) {
+      toast.error(`Only ${remaining} more attachment(s) allowed (max ${ATT_MAX} total).`);
+      return;
+    }
+    for (const f of files) {
+      if (!ATT_ALLOWED.includes(f.type)) { toast.error(`"${f.name}" is not allowed. Only PDF, JPG, PNG.`); return; }
+      if (f.size > ATT_MAX_SIZE) { toast.error(`"${f.name}" exceeds the 5MB limit.`); return; }
+    }
+    setUploadingAttachment(true);
+    try {
+      const fd = new FormData();
+      files.forEach(f => fd.append('files', f));
+      const res = await fetch(`/api/requests/${id}/attachments`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Attachment uploaded');
+        fetchRequest();
+      } else {
+        toast.error(data?.error ?? 'Failed to upload');
+      }
+    } catch {
+      toast.error('Error uploading attachment');
+    }
+    setUploadingAttachment(false);
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    try {
+      const res = await fetch(`/api/requests/${id}/attachments/${attachmentId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Attachment deleted');
+        fetchRequest();
+      } else {
+        const d = await res.json();
+        toast.error(d?.error ?? 'Failed to delete');
+      }
+    } catch {
+      toast.error('Error deleting attachment');
     }
   };
 
@@ -84,6 +164,16 @@ export function RequestDetailClient({ id }: { id: string }) {
         <span className="px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1" style={{ backgroundColor: sc.bg, color: sc.text }}>
           {StatusIcon && <StatusIcon className="w-4 h-4" />} {request?.status}
         </span>
+        {isAdmin && (
+          <button 
+            onClick={() => { setShowDeleteModal(true); setDeleteConfirmText(''); }} 
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium text-white hover:opacity-90" 
+            style={{ backgroundColor: '#C0392B' }}
+            title="Delete request and all associated records"
+          >
+            <Trash2 className="w-4 h-4" /> Delete
+          </button>
+        )}
       </div>
 
       {/* Status Actions (for Fulfillers/Admins) */}
@@ -315,6 +405,75 @@ export function RequestDetailClient({ id }: { id: string }) {
         </div>
       )}
 
+      {/* Attachments Section */}
+      <div className="carters-card">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold" style={{ color: '#171B25' }}>
+            <Paperclip className="inline w-4 h-4 mr-1" /> Attachments ({attachmentCount})
+          </h3>
+          {canAddAttachment && (
+            <label className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer border ${uploadingAttachment ? 'opacity-50 pointer-events-none' : ''}`} style={{ borderColor: '#0067B9', color: '#0067B9' }}>
+              <Plus className="w-4 h-4" /> {uploadingAttachment ? 'Uploading...' : 'Add File'}
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                multiple
+                className="hidden"
+                disabled={uploadingAttachment}
+                onChange={(e) => { handleAttachmentUpload(e.target.files); e.target.value = ''; }}
+              />
+            </label>
+          )}
+        </div>
+        {attachmentCount === 0 ? (
+          <p className="text-sm" style={{ color: '#9CA3AF' }}>
+            No attachments. {canAddAttachment ? `Add up to ${ATT_MAX} files (PDF, JPG, PNG — max 5MB each).` : ''}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {request.attachments.map((a: any) => (
+              <div key={a.id} className="flex items-center justify-between p-2 rounded-md border" style={{ borderColor: '#E2E5EB' }}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#0067B9' }} />
+                  <div className="min-w-0">
+                    <a
+                      href={`/api/requests/${id}/attachments/${a.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium truncate hover:underline block"
+                      style={{ color: '#0067B9' }}
+                    >
+                      {a.fileName}
+                    </a>
+                    <span className="text-xs" style={{ color: '#6B7280' }}>
+                      {a.size < 1024 * 1024 ? `${Math.round(a.size / 1024)} KB` : `${(a.size / (1024 * 1024)).toFixed(1)} MB`}
+                      {a.user?.name || a.user?.email ? ` · ${a.user?.name ?? a.user?.email}` : ''}
+                      {a.createdAt ? ` · ${new Date(a.createdAt).toLocaleDateString()}` : ''}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <a
+                    href={`/api/requests/${id}/attachments/${a.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded hover:bg-gray-100"
+                    title="Download / view"
+                  >
+                    <Download className="w-4 h-4" style={{ color: '#6B7280' }} />
+                  </a>
+                  {canDeleteAttachment && (
+                    <button onClick={() => handleDeleteAttachment(a.id)} className="p-1.5 rounded hover:bg-red-50 text-red-500" title="Delete attachment">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Shipment Modal */}
       {showShipmentModal && (
         <ShipmentModal
@@ -346,6 +505,68 @@ export function RequestDetailClient({ id }: { id: string }) {
           onClose={() => setShowNotesModal(false)}
           onSaved={() => { setShowNotesModal(false); fetchRequest(); }}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => !deleting && setShowDeleteModal(false)}>
+          <div className="bg-white rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-red-600">Delete Request</h3>
+              <button onClick={() => setShowDeleteModal(false)} disabled={deleting}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="p-3 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
+                <p className="text-sm font-medium" style={{ color: '#991B1B' }}>
+                  ⚠️ This action cannot be undone
+                </p>
+              </div>
+              <p className="text-sm" style={{ color: '#374151' }}>
+                You are about to permanently delete request <strong>{request?.caseNumber}</strong> and all associated records:
+              </p>
+              <ul className="text-sm space-y-1 ml-4" style={{ color: '#6B7280' }}>
+                <li>• {request?.items?.length || 0} request item(s)</li>
+                <li>• {request?.shipments?.length || 0} shipment(s)</li>
+                <li>• {request?.addendums?.length || 0} addendum(s)</li>
+              </ul>
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#171B25' }}>
+                  Type <span className="font-mono font-bold text-red-600">DELETE</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm font-mono"
+                  style={{ borderColor: '#E2E5EB' }}
+                  placeholder="DELETE"
+                  autoFocus
+                  disabled={deleting}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button 
+                  onClick={() => setShowDeleteModal(false)} 
+                  className="px-4 py-2 rounded-md text-sm"
+                  style={{ color: '#6B7280' }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting || deleteConfirmText !== 'DELETE'}
+                  className="px-4 py-2 rounded-md text-sm font-semibold text-white disabled:opacity-50"
+                  style={{ backgroundColor: '#C0392B' }}
+                >
+                  {deleting ? 'Deleting...' : 'Delete Request'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

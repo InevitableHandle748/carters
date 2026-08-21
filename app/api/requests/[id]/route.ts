@@ -30,6 +30,17 @@ export async function GET(request: Request, { params }: { params: { id: string }
           include: { user: { select: { name: true, email: true } } },
           orderBy: { createdAt: 'desc' as const },
         },
+        attachments: {
+          select: {
+            id: true,
+            fileName: true,
+            mimeType: true,
+            size: true,
+            createdAt: true,
+            user: { select: { name: true, email: true } },
+          },
+          orderBy: { createdAt: 'desc' as const },
+        },
       },
     });
     if (!req) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -52,6 +63,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
         updatedAt: s?.updatedAt?.toISOString?.() ?? null,
       })) ?? [],
       addendums: (req as any)?.addendums?.map?.((a: any) => ({
+        ...a,
+        createdAt: a?.createdAt?.toISOString?.() ?? null,
+      })) ?? [],
+      attachments: (req as any)?.attachments?.map?.((a: any) => ({
         ...a,
         createdAt: a?.createdAt?.toISOString?.() ?? null,
       })) ?? [],
@@ -111,5 +126,36 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     });
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
+  }
+}
+
+// Delete a request and all associated records (RequestItems, Shipments, ShipmentItems, Addendums cascade automatically)
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    const role = (session?.user as any)?.role;
+    
+    if (role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Only administrators can delete requests' }, { status: 403 });
+    }
+
+    const req = await prisma.request.findUnique({ 
+      where: { id: params?.id },
+      select: { caseNumber: true }
+    });
+    
+    if (!req) {
+      return NextResponse.json({ error: 'Request not found' }, { status: 404 });
+    }
+
+    // Delete the request - all related records cascade automatically via schema
+    await prisma.request.delete({ where: { id: params?.id } });
+
+    return NextResponse.json({ 
+      success: true,
+      message: `Request ${req.caseNumber} and all associated records deleted successfully`
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: 'Failed to delete request' }, { status: 500 });
   }
 }
