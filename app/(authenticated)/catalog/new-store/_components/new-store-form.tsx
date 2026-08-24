@@ -28,9 +28,10 @@ interface BundleItem {
 
 const NOTES_TEMPLATE = `Site Survey: \nIT Install Week: `;
 
-const MAX_ATTACHMENTS = 2;
+const MAX_ATTACHMENTS = 3;
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_ATTACHMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+const ALLOWED_ATTACHMENT_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'csv', 'xls', 'xlsx'];
+const getFileExtension = (name: string) => (name.split('.').pop() ?? '').toLowerCase();
 const formatBytes = (b: number) => b < 1024 * 1024 ? `${Math.round(b / 1024)} KB` : `${(b / (1024 * 1024)).toFixed(1)} MB`;
 
 export function NewStoreForm() {
@@ -180,8 +181,8 @@ export function NewStoreForm() {
     const incoming = Array.from(fileList);
     const accepted: File[] = [];
     for (const f of incoming) {
-      if (!ALLOWED_ATTACHMENT_TYPES.includes(f.type)) {
-        toast.error(`"${f.name}" is not allowed. Only PDF, JPG, and PNG.`);
+      if (!ALLOWED_ATTACHMENT_EXTENSIONS.includes(getFileExtension(f.name))) {
+        toast.error(`"${f.name}" is not allowed. Only PDF, JPG, PNG, Excel, or CSV.`);
         continue;
       }
       if (f.size > MAX_ATTACHMENT_SIZE) {
@@ -591,7 +592,7 @@ export function NewStoreForm() {
           Attachments
         </h2>
         <p className="text-xs mb-3" style={{ color: '#6B7280' }}>
-          Attach up to {MAX_ATTACHMENTS} files (PDF, JPG, or PNG — max 5MB each).
+          Attach up to {MAX_ATTACHMENTS} files (PDF, JPG, PNG, Excel, or CSV — max 5MB each).
         </p>
 
         {attachments.length > 0 && (
@@ -616,7 +617,7 @@ export function NewStoreForm() {
             <Plus className="w-4 h-4" /> Add File
             <input
               type="file"
-              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+              accept=".pdf,.jpg,.jpeg,.png,.csv,.xls,.xlsx,application/pdf,image/jpeg,image/png,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               multiple
               className="hidden"
               onChange={(e) => { handleFilesSelected(e.target.files); e.target.value = ''; }}

@@ -4,14 +4,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 
-const MAX_FILES = 2;
+const MAX_FILES = 3;
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES: Record<string, string> = {
-  'application/pdf': 'pdf',
-  'image/jpeg': 'jpg',
-  'image/jpg': 'jpg',
-  'image/png': 'png',
-};
+const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'csv', 'xls', 'xlsx'];
+const getFileExtension = (name: string) => (name.split('.').pop() ?? '').toLowerCase();
 
 // List attachments (metadata only, no binary data)
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -72,9 +68,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
     // Validate each file
     for (const file of files) {
-      if (!ALLOWED_TYPES[file.type]) {
+      if (!ALLOWED_EXTENSIONS.includes(getFileExtension(file.name))) {
         return NextResponse.json(
-          { error: `"${file.name}" is not an allowed type. Only PDF, JPG, and PNG are accepted.` },
+          { error: `"${file.name}" is not an allowed type. Only PDF, JPG, PNG, Excel, and CSV are accepted.` },
           { status: 400 }
         );
       }

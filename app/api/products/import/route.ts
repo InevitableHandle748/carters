@@ -4,9 +4,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 
-// Required + optional columns for the CSV import. `inStock` is intentionally NOT
-// part of the import surface (it is no longer shown in the UI); new products
-// fall back to the schema default (0).
+// Required + optional columns for the CSV import. `inStock` and `unitPrice` are
+// intentionally NOT part of the import surface (this data is not needed for a
+// build bundle); new products fall back to the schema defaults (0).
 const REQUIRED_COLUMNS = ['name', 'sku', 'category'];
 
 function parseBoolean(raw: string): boolean | null {
@@ -63,7 +63,6 @@ export async function POST(request: Request) {
       const sku = String(d.sku ?? '').trim();
       const category = String(d.category ?? '').trim();
       const description = String(d.description ?? '').trim();
-      const unitPriceRaw = String(d.unitPrice ?? '').trim();
       const activeRaw = String(d.active ?? '').trim();
 
       const rowErrors: string[] = [];
@@ -71,14 +70,6 @@ export async function POST(request: Request) {
       if (!name) rowErrors.push('name is required');
       if (!sku) rowErrors.push('sku is required');
       if (!category) rowErrors.push('category is required');
-
-      let unitPrice = 0;
-      if (unitPriceRaw !== '') {
-        const n = Number(unitPriceRaw);
-        if (!Number.isFinite(n)) rowErrors.push(`unitPrice "${unitPriceRaw}" is not a valid number`);
-        else if (n < 0) rowErrors.push('unitPrice cannot be negative');
-        else unitPrice = n;
-      }
 
       const active = parseBoolean(activeRaw);
       if (active === null) rowErrors.push(`active "${activeRaw}" is not valid (use true or false)`);
@@ -97,7 +88,7 @@ export async function POST(request: Request) {
 
       toCreate.push({
         row: rowNum,
-        data: { name, sku, category, description: description || null, unitPrice, active: active ?? true },
+        data: { name, sku, category, description: description || null, active: active ?? true },
       });
     }
 

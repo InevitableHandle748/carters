@@ -4,8 +4,8 @@ import { Plus, Edit2, Trash2, Search, X, Upload, Download, AlertTriangle, CheckC
 import { toast } from 'sonner';
 
 const REQUIRED_COLUMNS = ['name', 'sku', 'category'];
-const OPTIONAL_COLUMNS = ['description', 'unitPrice', 'active'];
-const TEMPLATE_HEADERS = ['name', 'sku', 'description', 'category', 'unitPrice', 'active'];
+const OPTIONAL_COLUMNS = ['description', 'active'];
+const TEMPLATE_HEADERS = ['name', 'sku', 'description', 'category', 'active'];
 
 // Minimal RFC-4180-ish CSV parser (handles quoted fields, embedded commas,
 // escaped double-quotes and CRLF/LF line endings).
@@ -89,7 +89,7 @@ export function ProductsClient() {
   const closeImport = () => { setShowImport(false); resetImport(); };
 
   const downloadTemplate = () => {
-    const sample = 'Digital Signage Display,DSP-1001,55-inch 4K display,Displays,899.99,true';
+    const sample = 'Digital Signage Display,DSP-1001,55-inch 4K display,Displays,true';
     const csv = TEMPLATE_HEADERS.join(',') + '\n' + sample + '\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -104,12 +104,6 @@ export function ProductsClient() {
     if (!String(data.name ?? '').trim()) errs.push('name is required');
     if (!sku) errs.push('sku is required');
     if (!String(data.category ?? '').trim()) errs.push('category is required');
-    const priceRaw = String(data.unitPrice ?? '').trim();
-    if (priceRaw !== '') {
-      const n = Number(priceRaw);
-      if (!Number.isFinite(n)) errs.push(`unitPrice "${priceRaw}" is not a number`);
-      else if (n < 0) errs.push('unitPrice cannot be negative');
-    }
     const activeRaw = String(data.active ?? '').trim().toLowerCase();
     if (activeRaw !== '' && !['true','false','1','0','yes','no','y','n'].includes(activeRaw)) {
       errs.push(`active "${activeRaw}" is not valid (use true or false)`);
@@ -285,7 +279,6 @@ export function ProductsClient() {
                           <th className="text-left px-2 py-2 font-semibold">Name</th>
                           <th className="text-left px-2 py-2 font-semibold">SKU</th>
                           <th className="text-left px-2 py-2 font-semibold">Category</th>
-                          <th className="text-right px-2 py-2 font-semibold">Price</th>
                           <th className="text-left px-2 py-2 font-semibold">Status</th>
                         </tr></thead>
                         <tbody>
@@ -295,7 +288,6 @@ export function ProductsClient() {
                               <td className="px-2 py-1.5">{r.data.name}</td>
                               <td className="px-2 py-1.5 font-mono">{r.data.sku}</td>
                               <td className="px-2 py-1.5">{r.data.category}</td>
-                              <td className="px-2 py-1.5 text-right">{r.data.unitPrice}</td>
                               <td className="px-2 py-1.5">{r.errors.length === 0 ? <span style={{ color: '#059669' }}>Ready</span> : <span style={{ color: '#B91C1C' }}>{r.errors.join('; ')}</span>}</td>
                             </tr>
                           ))}
